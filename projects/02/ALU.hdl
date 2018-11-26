@@ -7,7 +7,7 @@
  * The ALU (Arithmetic Logic Unit).
  * Computes one of the following functions:
  * x+y, x-y, y-x, 0, 1, -1, x, y, -x, -y, !x, !y,
- * x+1, y+1, x-1, y-1, x&y, x|y on two 16-bit inputs, 
+ * x+1, y+1, x-1, y-1, x&y, x|y on two 16-bit inputs,
  * according to 6 input bits denoted zx,nx,zy,ny,f,no.
  * In addition, the ALU computes two 1-bit outputs:
  * if the ALU output == 0, zr is set to 1; otherwise zr is set to 0;
@@ -27,8 +27,8 @@
 // if (out < 0) set ng = 1
 
 CHIP ALU {
-    IN  
-        x[16], y[16],  // 16-bit inputs        
+    IN
+        x[16], y[16],  // 16-bit inputs
         zx, // zero the x input?
         nx, // negate the x input?
         zy, // zero the y input?
@@ -36,11 +36,47 @@ CHIP ALU {
         f,  // compute out = x + y (if 1) or x & y (if 0)
         no; // negate the out output?
 
-    OUT 
+    OUT
         out[16], // 16-bit output
         zr, // 1 if (out == 0), 0 otherwise
         ng; // 1 if (out < 0),  0 otherwise
 
     PARTS:
-   // Put you code here:
+    // PRESET LOGIC
+    // ZX Logic
+    Not(in=zx, out=zxNot);
+    And16(a=x, b[0]=zxNot,b[1]=zxNot,b[2]=zxNot,b[3]=zxNot,b[4]=zxNot,b[5]=zxNot,b[6]=zxNot,b[7]=zxNot,b[8]=zxNot,b[9]=zxNot, b[10]=zxNot, b[11]=zxNot, b[12]=zxNot, b[13]=zxNot, b[14]=zxNot, b[15]=zxNot, out=zxout);
+
+    // NX Logic
+    Xor16Control(x=zxout, c=nx, out=presetx);
+
+    // ZY Logic
+    Not(in=zy, out=zyNot);
+    And16(a=y, b[0]=zyNot,b[1]=zyNot,b[2]=zyNot,b[3]=zyNot,b[4]=zyNot,b[5]=zyNot,b[6]=zyNot,b[7]=zyNot,b[8]=zyNot,b[9]=zyNot, b[10]=zyNot, b[11]=zyNot, b[12]=zyNot, b[13]=zyNot, b[14]=zyNot, b[15]=zyNot, out=zyout);
+
+    // NY Logic
+    Xor16Control(x=zyout, c=ny, out=presety);
+
+    // FUNCTION LOGIC
+    // F Logic
+    And16(a=presetx, b=presety, out=andout);
+    Add16(a=presetx, b=presety, out=addout);
+    Mux16(a=andout, b=addout, sel=f, out=fout);
+
+    // POSTSET LOGIC
+    // NO Logic
+    Xor16Control(x=fout, c=no, out=out);
+    Xor16Control(x=fout, c=no, out[15]=negout);
+    Xor16Control(x=fout, c=no, out[0..7]=lowout);
+    Xor16Control(x=fout, c=no, out[8..15]=hiout);
+
+    // FLAGS
+    // ZR Logic
+    Or8Way(in=lowout, out=loworout);
+    Or8Way(in=hiout, out=hiorout);
+    Or(a=hiorout, b=loworout, out=zw1);
+    Not(in=zw1, out=zr);
+
+    // NG Logic
+    And(a=negout, b=true, out=ng);
 }

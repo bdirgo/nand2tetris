@@ -1,0 +1,13 @@
+
+CHIP Xor16Control {
+	IN x[16], c;
+	OUT out[16];
+
+	PARTS:
+    Not16(in=x, out=notx);
+    Not(in=c, out=notc);
+    And16(a=x, b[0]=notc,b[1]=notc,b[2]=notc,b[3]=notc,b[4]=notc,b[5]=notc,b[6]=notc,b[7]=notc,b[8]=notc,b[9]=notc,b[10]=notc,b[11]=notc,b[12]=notc,b[13]=notc,b[14]=notc,b[15]=notc, out=w1);
+    And16(a=notx, b[0]=c,b[1]=c,b[2]=c,b[3]=c,b[4]=c,b[5]=c,b[6]=c,b[7]=c,b[8]=c,b[9]=c,b[10]=c,b[11]=c,b[12]=c,b[13]=c,b[14]=c,b[15]=c, out=w2);
+    Or16(a=w1, b=w2, out=out);
+
+}
