@@ -16,5 +16,6 @@ CHIP PC {
     OUT out[16];
 
     PARTS:
-    // Put your code here:
+    Register(in=in, load=load, out=w1);
+    Add16(a=, b=, out=);
 }
